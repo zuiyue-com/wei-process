@@ -1,8 +1,10 @@
 use std::os::windows::process::CommandExt;
 
-pub fn run(cmd: &str, param: &str) -> Result<String, Box<dyn std::error::Error>> {
-    let output = std::process::Command::new("powershell")
-    .args(&["/C", "start", "-wait", &format!("\"{}\"", cmd), param])
+pub fn run(cmd: &str, param: Vec<String>) -> Result<String, Box<dyn std::error::Error>> {
+    //let output = std::process::Command::new("powershell")
+    // .args(&["/C", "start", "-wait", &format!("\"{}\"", cmd), param])
+    let output = std::process::Command::new(cmd)
+    .args(param)
     .creation_flags(winapi::um::winbase::CREATE_NO_WINDOW)
     .output()?;
 
