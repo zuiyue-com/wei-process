@@ -8,6 +8,11 @@ pub fn run(cmd: &str, param: Vec<String>) -> Result<String, Box<dyn std::error::
     .creation_flags(winapi::um::winbase::CREATE_NO_WINDOW)
     .output()?;
 
-    let (res, _, _) = encoding_rs::UTF_16LE.decode(&output.stdout);
-    Ok(res.to_string())
+    // let (res, _, _) = encoding_rs::UTF_16LE.decode(&output.stdout);
+    //Ok(&output.stdout)
+
+    match std::str::from_utf8(&output.stdout) {
+        Ok(v) => Ok(v.to_string()),
+        Err(e) => Err(Box::new(e))
+    }    
 }
