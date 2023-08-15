@@ -1,14 +1,7 @@
-pub fn add(left: usize, right: usize) -> usize {
-    left + right
-}
+pub fn run(cmd: &str) -> String {
+    let output = std::process::Command::new("powershell")
+    .args(&["/C", "start", "-wait", &format!("\"{}\"", cmd)]).output().unwrap();
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn it_works() {
-        let result = add(2, 2);
-        assert_eq!(result, 4);
-    }
+    let (res, _, _) = encoding_rs::UTF_16LE.decode(&output.stdout);
+    res.to_string()
 }
