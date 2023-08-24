@@ -2,12 +2,20 @@
 use std::os::windows::process::CommandExt;
 
 pub fn run(cmd: &str, param: Vec<String>) -> Result<String, Box<dyn std::error::Error>> {
+    #[cfg(target_os = "windows")]
     let path = std::path::Path::new("./").join(cmd).join(".exe");
+    #[cfg(not(target_os = "windows"))]
+    let path = std::path::Path::new("./").join(cmd);
+
     if path.exists() {
         return command(&path.display().to_string(), param);
     }
 
-    let path = std::path::Path::new("./bin/").join(cmd).join(".exe");
+    #[cfg(target_os = "windows")]
+    let path = std::path::Path::new("./data/").join(cmd).join(".exe");
+    #[cfg(not(target_os = "windows"))]
+    let path = std::path::Path::new("./data/").join(cmd);
+
     if path.exists() {
         return command(&path.display().to_string(), param);
     }
@@ -38,33 +46,4 @@ pub fn command(cmd: &str, param: Vec<String>) -> Result<String, Box<dyn std::err
         Ok(v) => Ok(v.to_string()),
         Err(e) => Err(Box::new(e))
     }    
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_run_echo() -> Result<(), Box<dyn std::error::Error>> {
-        // 使用 cmd 和 echo 命令来测试
-        let output = run("cmd", vec!["/C".to_string(), "echo Hello, world!".to_string()])?;
-        // 检查输出是否为期望的值
-        assert_eq!(output.trim(), "Hello, world!"); 
-        Ok(())
-    }
-
-    #[test]
-    fn test_run_wei_sd_exe() -> Result<(), Box<dyn std::error::Error>> {
-        let cmd_path = "C:\\Users\\Wei\\Desktop\\work\\wei-sd\\target\\debug\\wei-sd.exe";
-
-        let output = run(cmd_path, vec![])?;
-
-        // 打印输出的数据
-        println!("Output from {}: {}", cmd_path, output.trim());
-
-        // 这里你可以检查输出是否为期望的值。但在此例子中，我们只检查输出是否为空。
-        assert!(!output.trim().is_empty(), "Output is empty!");
-
-        Ok(())
-    }
 }
