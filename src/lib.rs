@@ -2,6 +2,11 @@
 use std::os::windows::process::CommandExt;
 
 pub fn run(cmd: &str, param: Vec<String>) -> Result<String, Box<dyn std::error::Error>> {
+    let path = std::path::Path::new("./").join(cmd).join(".exe");
+    if path.exists() {
+        return command(&path.display().to_string(), param);
+    }
+
     let path = std::path::Path::new("./bin/").join(cmd).join(".exe");
     if path.exists() {
         return command(&path.display().to_string(), param);
