@@ -24,6 +24,7 @@ pub fn run(cmd: &str, param: Vec<String>) -> Result<String, Box<dyn std::error::
         return command(&path.display().to_string(), param);
     }
 
+    println!("{} dir: {:?}", cmd, wei_env::dir_bin());
     let path = wei_env::read(&wei_env::dir_bin(),cmd)?;
     command(path.as_str(), param)
 }
