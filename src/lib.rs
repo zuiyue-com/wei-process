@@ -1,3 +1,6 @@
+#[macro_use]
+extenrn crate wei_log;
+
 #[cfg(target_os = "windows")]
 use std::os::windows::process::CommandExt;
 
