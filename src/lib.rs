@@ -10,24 +10,24 @@ use std::os::windows::process::CommandExt;
 /// * `param` - Command parameters
 pub fn run(cmd: &str, param: Vec<String>) -> Result<String, Box<dyn std::error::Error>> {
     #[cfg(target_os = "windows")]
-    let path = std::path::Path::new("./").join(cmd).join(".exe");
+    let path = "./".to_owned() + cmd + ".exe";
     #[cfg(not(target_os = "windows"))]
-    let path = std::path::Path::new("./").join(cmd);
+    let path = "./".to_owned() + cmd;
 
     info!("path: {:?}", path);
 
-    if path.exists() {
-        return command(&path.display().to_string(), param);
-    }
+    if let Ok(data) = command(&path, param.clone()) {
+        return Ok(data);
+    };
 
     #[cfg(target_os = "windows")]
-    let path = std::path::Path::new("./data/").join(cmd).join(".exe");
+    let path = "./data/".to_owned() + cmd + ".exe";
     #[cfg(not(target_os = "windows"))]
-    let path = std::path::Path::new("./data/").join(cmd);
+    let path = "./".to_owned() + cmd;
 
-    if path.exists() {
-        return command(&path.display().to_string(), param);
-    }
+    if let Ok(data) = command(&path, param.clone()) {
+        return Ok(data);
+    };
 
     info!("{} dir: {:?}", cmd, wei_env::dir_bin());
     let path = wei_env::read(&wei_env::dir_bin(),cmd)?;
