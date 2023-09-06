@@ -29,7 +29,10 @@ pub fn run(cmd: &str, param: Vec<String>) -> Result<String, Box<dyn std::error::
         return command(&path.display().to_string(), param);
     }
 
+<<<<<<< HEAD
     info!("{} dir: {:?}", cmd, wei_env::dir_bin());
+=======
+>>>>>>> fbbafd6c01ea9e6b0f9fa5a6285ebe3df1f8326c
     let path = wei_env::read(&wei_env::dir_bin(),cmd)?;
     command(path.as_str(), param)
 }
