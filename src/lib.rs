@@ -74,3 +74,20 @@ pub fn is_process_running(process_name: &str) -> bool {
 
     !output.stdout.is_empty()
 }
+
+pub fn kill(name: &str) -> Result<(), Box<dyn std::error::Error>> {
+    #[cfg(target_os = "windows")]
+    {
+        let mut cmd = Command::new("cmd");
+        cmd.arg("/C").arg(format!("taskkill /IM {}.exe /F", name));
+        cmd.output()?;
+    }
+
+    #[cfg(target_os = "linux")]
+    {
+        let mut cmd = Command::new("bash");
+        cmd.arg("-c").arg(format!("pkill {}", name));
+        cmd.output()?;
+    }
+    Ok(())
+}
