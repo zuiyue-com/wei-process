@@ -55,3 +55,22 @@ pub fn command(cmd: &str, param: Vec<String>) -> Result<String, Box<dyn std::err
         Err(e) => Err(Box::new(e))
     }    
 }
+
+
+pub fn is_process_running(process_name: &str) -> bool {
+    let output = if cfg!(target_os = "windows") {
+        Command::new("powershell")
+            .arg("-Command")
+            .arg(format!("Get-Process -Name {} -ErrorAction SilentlyContinue", process_name))
+            .output()
+            .expect("Failed to execute command")
+    } else {
+        Command::new("bash")
+            .arg("-c")
+            .arg(format!("pgrep -f {}", process_name))
+            .output()
+            .expect("Failed to execute command")
+    };
+
+    !output.stdout.is_empty()
+}
