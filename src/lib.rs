@@ -11,6 +11,8 @@ pub fn run(cmd: &str, param: Vec<String>) -> Result<String, Box<dyn std::error::
     #[cfg(not(target_os = "windows"))]
     let path = std::path::Path::new("./").join(cmd);
 
+    info!("path: {:?}", path);
+
     if path.exists() {
         return command(&path.display().to_string(), param);
     }
@@ -24,7 +26,7 @@ pub fn run(cmd: &str, param: Vec<String>) -> Result<String, Box<dyn std::error::
         return command(&path.display().to_string(), param);
     }
 
-    println!("{} dir: {:?}", cmd, wei_env::dir_bin());
+    info!("{} dir: {:?}", cmd, wei_env::dir_bin());
     let path = wei_env::read(&wei_env::dir_bin(),cmd)?;
     command(path.as_str(), param)
 }
