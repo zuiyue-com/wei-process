@@ -56,7 +56,7 @@ pub fn command(cmd: &str, param: Vec<String>) -> Result<String, Box<dyn std::err
     }    
 }
 
-
+use std::process::Command;
 pub fn is_process_running(process_name: &str) -> bool {
     let output = if cfg!(target_os = "windows") {
         Command::new("powershell")
