@@ -1,6 +1,6 @@
 [package]
 name = "wei-run"
-version = "0.1.15"
+version = "0.1.16"
 edition = "2021"
 description = "wei run"
 documentation = "https://github.com/zuiyue-com/wei-run"
@@ -8,7 +8,6 @@ homepage = "https://github.com/zuiyue-com/wei-run"
 license = "MIT OR Apache-2.0"
 
 [dependencies]
-# encoding_rs = "0.8.32"
 wei-env = "0.2.10"
 wei-log = "0.2.3"
-winapi = { version = "0.3", features = ["winbase"] }
+winapi = { version = "0.3", features = ["winbase","tlhelp32","handleapi"] }

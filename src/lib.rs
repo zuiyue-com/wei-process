@@ -56,25 +56,82 @@ pub fn command(cmd: &str, param: Vec<String>) -> Result<String, Box<dyn std::err
     }    
 }
 
-use std::process::Command;
-pub fn is_process_running(process_name: &str) -> bool {
-    let output = if cfg!(target_os = "windows") {
-        Command::new("powershell")
-            .arg("-Command")
-            .arg(format!("Get-Process -Name {} -ErrorAction SilentlyContinue", process_name))
-            .output()
-            .expect("Failed to execute command")
-    } else {
-        Command::new("bash")
-            .arg("-c")
-            .arg(format!("pgrep -f {}", process_name))
-            .output()
-            .expect("Failed to execute command")
-    };
 
-    !output.stdout.is_empty()
+// pub fn is_process_running(process_name: &str) -> bool {
+//     let output = if cfg!(target_os = "windows") {
+//         Command::new("powershell")
+//             .arg("-Command")
+//             .arg(format!("Get-Process -Name {} -ErrorAction SilentlyContinue", process_name))
+//             .output()
+//             .expect("Failed to execute command")
+//     } else {
+//         Command::new("bash")
+//             .arg("-c")
+//             .arg(format!("pgrep -f {}", process_name))
+//             .output()
+//             .expect("Failed to execute command")
+//     };
+
+//     !output.stdout.is_empty()
+// }
+
+
+use std::ffi::OsString;
+use std::os::windows::ffi::OsStringExt;
+
+use winapi::um::tlhelp32::{CreateToolhelp32Snapshot, Process32First, Process32Next, PROCESSENTRY32, TH32CS_SNAPPROCESS};
+use winapi::um::handleapi::CloseHandle;
+use winapi::shared::minwindef::FALSE;
+
+pub fn is_process_running(target_process_name: &str) -> bool {
+    unsafe {
+        let h_process_snap = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+        if h_process_snap.is_null() {
+            eprintln!("Failed to create snapshot.");
+            return false;
+        }
+
+        let mut pe32 = PROCESSENTRY32 {
+            dwSize: std::mem::size_of::<PROCESSENTRY32>() as u32,
+            cntUsage: 0,
+            th32ProcessID: 0,
+            th32DefaultHeapID: 0,
+            th32ModuleID: 0,
+            cntThreads: 0,
+            th32ParentProcessID: 0,
+            pcPriClassBase: 0,
+            dwFlags: 0,
+            szExeFile: [0; 260],
+        };
+
+        if Process32First(h_process_snap, &mut pe32) == FALSE {
+            CloseHandle(h_process_snap);
+            eprintln!("Failed to gather information from the first process.");
+            return false;
+        }
+
+        while Process32Next(h_process_snap, &mut pe32) != FALSE {
+            let name = {
+                let len = pe32.szExeFile.iter().position(|&x| x == 0).unwrap_or(pe32.szExeFile.len());
+                let wide_string: &[u16] = std::slice::from_raw_parts(pe32.szExeFile.as_ptr() as *const u16, len);
+                OsString::from_wide(wide_string)
+                    .to_string_lossy()
+                    .into_owned()
+            };
+            
+            if name == target_process_name {
+                CloseHandle(h_process_snap);
+                return true;
+            }
+        }
+
+        CloseHandle(h_process_snap);
+    }
+
+    false
 }
 
+use std::process::Command;
 pub fn kill(name: &str) -> Result<(), Box<dyn std::error::Error>> {
     #[cfg(target_os = "windows")]
     {
