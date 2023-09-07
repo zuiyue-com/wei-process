@@ -79,10 +79,13 @@ pub fn command(cmd: &str, param: Vec<String>) -> Result<String, Box<dyn std::err
 use std::ffi::OsString;
 use std::os::windows::ffi::OsStringExt;
 
+#[cfg(target_os = "windows")]
 use winapi::um::tlhelp32::{CreateToolhelp32Snapshot, Process32First, Process32Next, PROCESSENTRY32, TH32CS_SNAPPROCESS};
+#[cfg(target_os = "windows")]
 use winapi::um::handleapi::CloseHandle;
+#[cfg(target_os = "windows")]
 use winapi::shared::minwindef::FALSE;
-
+#[cfg(target_os = "windows")]
 pub fn is_process_running(target_process_name: &str) -> bool {
     unsafe {
         let h_process_snap = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
@@ -126,6 +129,28 @@ pub fn is_process_running(target_process_name: &str) -> bool {
         }
 
         CloseHandle(h_process_snap);
+    }
+
+    false
+}
+
+#[cfg(target_os = "linux")]
+use procfs::process::all_processes;
+#[cfg(target_os = "linux")]
+fn is_process_running(target_process_name: &str) -> bool {
+    match all_processes() {
+        Ok(processes) => {
+            for proc in processes {
+                if let Ok(proc) = proc {
+                    if proc.comm == target_process_name {
+                        return true;
+                    }
+                }
+            }
+        },
+        Err(err) => {
+            eprintln!("Failed to get processes: {}", err);
+        },
     }
 
     false
