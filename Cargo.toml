@@ -11,4 +11,10 @@ license = "MIT OR Apache-2.0"
 wei-env = "0.2.10"
 wei-log = "0.2.3"
 winapi = { version = "0.3", features = ["winbase","tlhelp32","handleapi"] }
+
+[dependencies.procfs]
+version = "0.15"
+optional = true
+
+[target.'cfg(target_os = "linux")'.dependencies]
 procfs = "0.15"
