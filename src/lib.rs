@@ -23,7 +23,7 @@ pub fn run(cmd: &str, param: Vec<String>) -> Result<String, Box<dyn std::error::
     #[cfg(target_os = "windows")]
     let path = "./data/".to_owned() + cmd + ".exe";
     #[cfg(not(target_os = "windows"))]
-    let path = "./".to_owned() + cmd;
+    let path = "./data/".to_owned() + cmd;
 
     if let Ok(data) = command(&path, param.clone()) {
         return Ok(data);
