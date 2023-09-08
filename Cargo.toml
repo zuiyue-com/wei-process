@@ -9,7 +9,7 @@ license = "MIT OR Apache-2.0"
 
 [dependencies]
 wei-env = "0.2.10"
-wei-log = "0.2.3"
+wei-log = "0.2.5"
 winapi = { version = "0.3", features = ["winbase","tlhelp32","handleapi"] }
 
 [dependencies.procfs]
