@@ -103,23 +103,27 @@ pub fn command_async(cmd: &str, param: Vec<String>) -> Result<(), Box<dyn std::e
 
 use std::ffi::OsString;
 use std::os::windows::ffi::OsStringExt;
+use std::path::Path;
+use std::ptr::null_mut;
 
 #[cfg(target_os = "windows")]
 use winapi::um::tlhelp32::{CreateToolhelp32Snapshot, Process32First, Process32Next, PROCESSENTRY32, TH32CS_SNAPPROCESS};
 #[cfg(target_os = "windows")]
 use winapi::um::handleapi::CloseHandle;
 #[cfg(target_os = "windows")]
-use winapi::shared::minwindef::FALSE;
+use winapi::um::psapi::GetModuleFileNameExW;
 #[cfg(target_os = "windows")]
-pub fn is_process_running(target_process_name: &str) -> bool {
+use winapi::um::winnt::PROCESS_QUERY_INFORMATION;
+#[cfg(target_os = "windows")]
+use winapi::um::processthreadsapi::OpenProcess;
+#[cfg(target_os = "windows")]
+pub fn is_process_running(process_file_name: &str) -> bool {
+    let process_file_name = process_file_name.to_owned() + ".exe";
     unsafe {
-        let h_process_snap = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
-        if h_process_snap.is_null() {
-            eprintln!("Failed to create snapshot.");
-            return false;
-        }
+        let snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+        if snapshot.is_null() { return false; }
 
-        let mut pe32 = PROCESSENTRY32 {
+        let mut process_entry = PROCESSENTRY32 {
             dwSize: std::mem::size_of::<PROCESSENTRY32>() as u32,
             cntUsage: 0,
             th32ProcessID: 0,
@@ -132,28 +136,35 @@ pub fn is_process_running(target_process_name: &str) -> bool {
             szExeFile: [0; 260],
         };
 
-        if Process32First(h_process_snap, &mut pe32) == FALSE {
-            CloseHandle(h_process_snap);
-            eprintln!("Failed to gather information from the first process.");
+        if Process32First(snapshot, &mut process_entry) == 0 {
+            CloseHandle(snapshot);
             return false;
         }
 
-        while Process32Next(h_process_snap, &mut pe32) != FALSE {
-            let name = {
-                let len = pe32.szExeFile.iter().position(|&x| x == 0).unwrap_or(pe32.szExeFile.len());
-                let wide_string: &[u16] = std::slice::from_raw_parts(pe32.szExeFile.as_ptr() as *const u16, len);
-                OsString::from_wide(wide_string)
-                    .to_string_lossy()
-                    .into_owned()
-            };
-            
-            if name == target_process_name {
-                CloseHandle(h_process_snap);
-                return true;
+        loop {
+            let h_process = OpenProcess(PROCESS_QUERY_INFORMATION, 0, process_entry.th32ProcessID);
+            if !h_process.is_null() {
+                let mut buffer = [0u16; 260];
+                let result = GetModuleFileNameExW(h_process, null_mut(), buffer.as_mut_ptr(), buffer.len() as u32);
+                if result != 0 {
+                    let len = buffer.iter().position(|&x| x == 0).unwrap_or(buffer.len());
+                    let wide_string: &[u16] = std::slice::from_raw_parts(buffer.as_ptr() as *const u16, len);
+                    let current_proc_file_path = OsString::from_wide(wide_string).to_string_lossy().into_owned();
+                    let current_proc_file_name = Path::new(&current_proc_file_path).file_name().unwrap().to_str().unwrap();
+
+                    if current_proc_file_name == process_file_name {
+                        CloseHandle(h_process);
+                        CloseHandle(snapshot);
+                        return true;
+                    }
+                }
+                CloseHandle(h_process);
             }
+
+            if Process32Next(snapshot, &mut process_entry) == 0 { break; }
         }
 
-        CloseHandle(h_process_snap);
+        CloseHandle(snapshot);
     }
 
     false

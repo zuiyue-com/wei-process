@@ -1,6 +1,6 @@
 [package]
 name = "wei-run"
-version = "0.1.22"
+version = "0.1.23"
 edition = "2021"
 description = "wei run"
 documentation = "https://github.com/zuiyue-com/wei-run"
@@ -10,7 +10,7 @@ license = "MIT OR Apache-2.0"
 [dependencies]
 wei-env = "0.2.10"
 wei-log = "0.2.5"
-winapi = { version = "0.3", features = ["winbase","tlhelp32","handleapi","wincon","winuser"] }
+winapi = { version = "0.3", features = ["winbase","tlhelp32","handleapi","wincon","winuser","psapi"] }
 
 [dependencies.procfs]
 version = "0.15"
