@@ -181,3 +181,12 @@ pub fn hide() -> Result<(), Box<dyn std::error::Error>> {
     }
     Ok(())
 }
+
+pub fn is_debug() -> Result<bool, Box<dyn std::error::Error>> {
+    let home_dir = std::env::var("USERPROFILE")?;
+    if std::path::Path::new(&home_dir).join("AppData\\Local\\wei\\debug.dat").exists() {
+        return Ok(true);
+    }
+
+    return Ok(false);
+}
