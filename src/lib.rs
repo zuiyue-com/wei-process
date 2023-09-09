@@ -58,7 +58,7 @@ pub fn command(cmd: &str, param: Vec<String>) -> Result<String, Box<dyn std::err
 
 pub fn command_async(cmd: &str, param: Vec<String>) -> Result<(), Box<dyn std::error::Error>> {
     #[cfg(target_os = "windows")]
-    let output = std::process::Command::new(cmd)
+    std::process::Command::new(cmd)
     .args(param)
     .creation_flags(winapi::um::winbase::CREATE_NO_WINDOW)
     .spawn()?;
