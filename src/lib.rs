@@ -56,25 +56,7 @@ pub fn command(cmd: &str, param: Vec<String>) -> Result<String, Box<dyn std::err
     }    
 }
 
-
-// pub fn is_process_running(process_name: &str) -> bool {
-//     let output = if cfg!(target_os = "windows") {
-//         Command::new("powershell")
-//             .arg("-Command")
-//             .arg(format!("Get-Process -Name {} -ErrorAction SilentlyContinue", process_name))
-//             .output()
-//             .expect("Failed to execute command")
-//     } else {
-//         Command::new("bash")
-//             .arg("-c")
-//             .arg(format!("pgrep -f {}", process_name))
-//             .output()
-//             .expect("Failed to execute command")
-//     };
-
-//     !output.stdout.is_empty()
-// }
-
+pub fn command_async(cmd: &str, param: Vec<String>) ->
 
 use std::ffi::OsString;
 use std::os::windows::ffi::OsStringExt;
@@ -170,6 +152,19 @@ pub fn kill(name: &str) -> Result<(), Box<dyn std::error::Error>> {
         let mut cmd = Command::new("bash");
         cmd.arg("-c").arg(format!("pkill {}", name));
         cmd.output()?;
+    }
+    Ok(())
+}
+
+#[cfg(target_os = "windows")]
+pub fn hide() -> Result<(), Box<dyn std::error::Error>> {
+    if !is_debug()? {
+        let window = unsafe { winapi::um::wincon::GetConsoleWindow() };
+        if window != std::ptr::null_mut() {
+            unsafe {
+                winapi::um::winuser::ShowWindow(window, winapi::um::winuser::SW_HIDE);
+            }
+        }
     }
     Ok(())
 }
