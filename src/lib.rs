@@ -64,7 +64,7 @@ pub fn command_async(cmd: &str, param: Vec<String>) -> Result<(), Box<dyn std::e
     .spawn()?;
 
     #[cfg(not(target_os = "windows"))]
-    let output = std::process::Command::new(cmd)
+    std::process::Command::new(cmd)
     .args(param)
     .spawn()?;
 
